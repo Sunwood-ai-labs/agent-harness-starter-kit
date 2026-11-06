@@ -134,8 +134,21 @@ class FileTools(unittest.TestCase):
         self.assertEqual(g.evaluate("claude", ev, POLICY).decision, "allow")
 
     def test_claude_write_outside(self):
-        ev = {"tool_name": "Write", "tool_input": {"file_path": os.path.join(os.path.dirname(WS), "x.txt")}, "cwd": WS}
+        # Not dirname(WS): on Linux the parent of a mkdtemp workspace IS /tmp,
+        # which the guard deliberately treats as scratch (see the /tmp test
+        # below) — so that path would be allowed and the test would pass or
+        # fail depending on the OS. Use a path that is outside on every OS.
+        outside = os.path.join(os.path.abspath(os.sep), "definitely", "outside", "x.txt")
+        ev = {"tool_name": "Write", "tool_input": {"file_path": outside}, "cwd": WS}
         self.assertEqual(g.evaluate("claude", ev, POLICY).decision, "block")
+
+    def test_claude_write_tmp_scratch_is_allowed(self):
+        # Regression test documenting the deliberate carve-out: absolute /tmp
+        # and /var/tmp writes are scratch (area A) on every platform.
+        for p in ["/tmp/scratch-note.txt", "/var/tmp/scratch-note.txt"]:
+            with self.subTest(path=p):
+                ev = {"tool_name": "Write", "tool_input": {"file_path": p}, "cwd": WS}
+                self.assertEqual(g.evaluate("claude", ev, POLICY).decision, "allow")
 
     def test_claude_read_env(self):
         ev = {"tool_name": "Read", "tool_input": {"file_path": os.path.join(WS, ".env")}, "cwd": WS}
