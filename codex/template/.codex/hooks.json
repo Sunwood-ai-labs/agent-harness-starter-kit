@@ -1,0 +1,31 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{GUARD}} --tool codex",
+            "commandWindows": "{{GUARD}} --tool codex",
+            "statusMessage": "agent-guard: 安全チェック中",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CHECKPOINT}}",
+            "commandWindows": "{{CHECKPOINT}}",
+            "statusMessage": "agent-guard: 作業前バックアップ",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

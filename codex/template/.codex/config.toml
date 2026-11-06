@@ -1,0 +1,13 @@
+# agent-harness-starter-kit: Codex project settings.
+# Codex reads this file only after you trust the project folder.
+
+# Commands run in a sandbox that can write only inside this folder.
+sandbox_mode = "workspace-write"
+# Codex asks before leaving the sandbox (writing elsewhere, using the network).
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+# false: code run by the agent cannot reach the internet, so it cannot send
+# files out. Web search by Codex itself still works. Set true only if the
+# agent must download packages inside the sandbox.
+network_access = false

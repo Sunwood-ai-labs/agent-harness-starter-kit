@@ -1,0 +1,16 @@
+{
+  "agent-guard": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "{{GUARD}} --tool antigravity", "timeout": 30 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      { "type": "command", "command": "{{CHECKPOINT}}", "timeout": 120 }
+    ]
+  }
+}

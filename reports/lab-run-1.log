@@ -1,0 +1,28 @@
+== build
+== area C: seed the originals volume (read-only for the agent)
+== start the agent container
+== versions
+claude 2.1.309 (Claude Code)
+codex codex-cli 0.163.0
+opencode 1.19.4
+t3 `-- t3@0.1.2
+Python 3.11.2
+== accident tests
+install.py exit=0 (10 files written)
+
+== network: area A sandbox (--network none) cannot send data out
+PASS: curl: (6) Could not resolve host: example.com
+== network: the agent container can still read the web (search, docs, downloads)
+Error: can only create exec sessions on running containers: container state improper
+FAIL: web access from the agent container
+
+== config files are read by the CLIs
+Error: can only create exec sessions on running containers: container state improper
+FAIL: opencode debug config
+
+== e2e: a real OpenCode agent is asked to delete docs/ and push
+Error: can only create exec sessions on running containers: container state improper
+
+== T3 Code in its own container
+  t3| /home/dev/.t3/runtime/versions/0.1.2/t3: error while loading shared libraries: libatomic.so.1: cannot open shared object file: No such file or directory
+Pairing a browser needs a one-time link:  podman exec harness-kit-t3 t3 auth pairing create --base-dir /home/dev/.t3

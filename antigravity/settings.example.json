@@ -1,0 +1,25 @@
+{
+  "_説明": "Antigravity CLI のユーザー設定（~/.gemini/antigravity-cli/settings.json）に足す例。インストーラーは書き換えません。管理者が確認して反映してください。",
+  "enableTerminalSandbox": true,
+  "toolPermission": "proceed-in-sandbox",
+  "permissions": {
+    "deny": [
+      "command(git push)",
+      "command(sudo)",
+      "command(regex:curl .*(-d|--data|-F|--form|-T|--upload-file|-X ?(POST|PUT|PATCH|DELETE)).*)",
+      "write_file(.git/)",
+      "write_file(.agents/)",
+      "write_file(.agent-guard/)",
+      "write_file(originals/)"
+    ],
+    "ask": [
+      "command(rm)",
+      "command(git reset --hard)",
+      "command(git clean)"
+    ],
+    "allow": [
+      "command(git status)",
+      "command(git diff)"
+    ]
+  }
+}

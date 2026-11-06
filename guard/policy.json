@@ -1,0 +1,52 @@
+{
+  "_説明": "agent-guard の設定。パスは作業フォルダからの相対パス。** は下の階層すべて。",
+  "protected_paths": [
+    ".git/**",
+    ".agent-guard/**",
+    ".claude/settings.json",
+    ".claude/settings.local.json",
+    ".codex/**",
+    ".agents/**",
+    "opencode.json",
+    ".opencode/**",
+    "originals/**"
+  ],
+  "scratch_paths": [
+    "tmp/**",
+    "scratch/**",
+    ".cache/**",
+    "build/**",
+    "dist/**",
+    "node_modules/**",
+    "**/__pycache__/**",
+    "*.pyc",
+    "*.log",
+    ".agent-trash/**"
+  ],
+  "secret_patterns": [
+    ".env",
+    ".env.*",
+    "*.pem",
+    "*.key",
+    "id_rsa*",
+    "id_ed25519*",
+    ".ssh/**",
+    ".aws/**",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+    "credentials*",
+    "*secret*"
+  ],
+  "secret_allow": [
+    ".env.example",
+    ".env.sample",
+    ".env.template"
+  ],
+  "mass_change_files": 20,
+  "log_decisions": true,
+  "_backup_説明": "作業前バックアップ（checkpoint.py）。backup_dir は作業フォルダの外に置く。",
+  "backup_dir": "~/.agent-guard-backups",
+  "backup_keep": 10,
+  "backup_max_mb": 500
+}

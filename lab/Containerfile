@@ -1,0 +1,32 @@
+# agent-harness-starter-kit lab image.
+# Versions are pinned and were at least two weeks old when chosen (2026-11-06).
+ARG NODE_VERSION=24.15.0
+FROM docker.io/library/node:${NODE_VERSION}-bookworm-slim
+
+ARG CLAUDE_CODE_VERSION=2.1.309
+ARG CODEX_VERSION=0.163.0
+ARG OPENCODE_VERSION=1.19.4
+ARG T3_VERSION=0.1.2
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        ca-certificates curl git python3 bubblewrap socat procps tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupmod --new-name dev node \
+    && usermod --login dev --home /home/dev --move-home node \
+    && mkdir -p /workspace /protected /kit \
+    && chown dev:dev /workspace
+
+RUN npm install --global --omit=dev --no-audit --no-fund \
+        "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+        "@openai/codex@${CODEX_VERSION}" \
+        "opencode-ai@${OPENCODE_VERSION}" \
+        "t3@${T3_VERSION}" \
+    && npm cache clean --force && rm -rf /root/.npm
+
+COPY . /kit
+ENV HOME=/home/dev
+WORKDIR /workspace
+USER dev:dev
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["sleep", "infinity"]
