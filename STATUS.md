@@ -31,8 +31,13 @@
 4. `__pycache__` を git 管理から除外（.gitignore 追加に伴う）
 
 ## 次の作業
-- GitHubへ公開（`gh repo create Sunwood-ai-labs/agent-harness-starter-kit --public --source . --push`）→ CI確認
-- `reports/final-report.md` 作成、STATUS.md 最終更新
+- なし（完了）
 
-## 最終報告と残る問題
-（公開後に記入）
+## 最終報告と残る問題（2026-11-06）
+- **公開URL：https://github.com/Sunwood-ai-labs/agent-harness-starter-kit**（public、MIT）
+- **CI：成功**（run 42195434486、ubuntu-latest ✓ / windows-latest ✓。1回目の失敗=Linux限定のテスト環境依存を修正のうえ再push）
+- **ラボ：26チェックすべて PASS（事故テスト 20/20＋ホスト側 6/6）、FAIL 0**。OpenCode e2e（無料モデル）で実エージェントの危険命令2種が阻止、T3 `t3 serve` 応答
+- **単体テスト：30件 OK**（/tmp例外の再発防止テストを1件追加）
+- 未確認：Claude Code / Codex / Antigravity のエージェント本体でのHook発火（認証・IDEのため。入力JSONでの検証に代替）、T3のブラウザペアリング（ユーザー操作）→ `reports/final-report.md` 4節
+- 詳細：`reports/final-report.md`、`reports/lab-results.md`
+- 後片付け：ラボの後始末は `lab/run-lab.sh --clean`（コンテナ・ボリューム削除）。マシン `harness-kit-lab` は残置
