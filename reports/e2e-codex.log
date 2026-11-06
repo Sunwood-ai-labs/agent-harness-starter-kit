@@ -1,0 +1,13 @@
+== preflight
+codex exec could not run. Last lines:
+  cx| user
+  cx| Reply with just: OK
+  cx| warning: `--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation.
+  cx| warning: `--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation.
+  cx| hook: SessionStart
+  cx| hook: SessionStart Failed
+  cx| ERROR: You’ve hit your usage limit. Visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 8th, 2026 11:22 PM.
+  cx| ERROR: You’ve hit your usage limit. Visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 8th, 2026 11:22 PM.
+
+未確認（usage limit。上限解除後（11/8 23:22 以降）に再実行可能: bash lab/e2e-codex.sh）
+SCRIPT_EXIT=0

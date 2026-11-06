@@ -180,19 +180,31 @@ agent-guard（第2層）は便利ですが、**命令の文字列しか見えな
 
 ## 8. ラボの結果（実機で確認したこと）
 
-Podmanコンテナ（隔離環境）で「防ぎたい事故」を実際に起こしてみて、止まることを確認しました（2026-11-06、**26チェックすべてPASS・FAIL 0**）。詳細は [reports/lab-results.md](reports/lab-results.md)（生ログ: [lab-run-2.log](reports/lab-run-2.log)）。
+Podmanコンテナ（隔離環境）で「防ぎたい事故」を実際に起こしてみて、止まることを確認しました（2026-11-06）。詳細は [reports/lab-results.md](reports/lab-results.md)（生ログ: [lab-run-2.log](reports/lab-run-2.log)）。
 
 | 確認したこと | 結果 |
 |---|---|
 | 事故テスト20種（削除・保護領域・外部送信・設定改ざん・チェック破損・復元・監査ログ） | **20/20 PASS** |
 | ネット遮断サンドボックス（`--network none`）からの送信 | PASS（DNSも引けない） |
 | プロセス暴走600個 vs `--pids-limit=64` | PASS（`fork: Resource temporarily unavailable`） |
+| **実Claude Codeエージェント**（`claude -p`、6種の危険な依頼） | **6/6 PASS**（削除はaskで止まり、tmp削除は実行され、push・原本削除・設定書き換え・`.env`読み取りはすべて阻止） |
 | 実OpenCodeエージェント（無料モデル）による `rm -rf docs` と `git push` の試行 | PASS（両方阻止、AIが日本語で理由を報告、`docs/` 残存） |
+| 実Codexエージェント（`codex exec`） | 未確認（アカウントのusage limit。上限解除後に `bash lab/e2e-codex.sh` で再実行可能） |
 | T3 Code（`t3 serve`）の起動 | PASS（port 3773 で応答） |
 
 特に重要な実証：**Hookを無視して直接 `rm -rf /protected` と Python の `shutil.rmtree()` を実行しても、読み取り専用マウントが原本を守り切る**（`Read-only file system` で失敗）。Hookが全部壊れても原本は消えません——3層の意味はここにあります。
 
-未確認（認証やユーザー操作が必要なため、入力JSONでの検証に置き換えたもの）：Claude Code / Codex / Antigravity のエージェント本体でのHook発火、T3のブラウザペアリング。一覧は [reports/lab-results.md](reports/lab-results.md) の「未確認事項」。
+未確認：Codex 本体のエージェントループ（usage limit）、Antigravity の実機（IDEのためLinuxコンテナで起動できず、入力JSONでの検証に代替）、T3のブラウザペアリング。一覧は [reports/lab-results.md](reports/lab-results.md) の「未確認事項」。
+
+### 実エージェントでのe2e（ログイン情報を使う検証）
+
+エージェント本体（`claude -p` / `codex exec` / `opencode run`）を実際に動かして危険な依頼を出し、Hookと権限が止めるかを確かめる e2e テストも用意しています（`lab/e2e-claude.sh`、`lab/e2e-codex.sh`、`lab/e2e-opencode.sh`。`run-lab.sh` では `LAB_E2E_CLAUDE=1` / `LAB_E2E_CODEX=1` / `LAB_E2E_OPENCODE=1` で有効化。ログイン情報がコンテナに無い場合は自動スキップ）。
+
+> **ログイン情報（認証情報）をコンテナに入れる場合の注意**
+> - 入れてよいのは**その検証専用の使い捨てコンテナだけ**（`harness-kit-*`）。ホストの設定フォルダ（`~/.claude` 等）は触らない。
+> - 認証ファイルはコンテナの中に置くだけでコピー・表示・ログ出力をしない。e2eスクリプトは「ファイルの存在」しか見ません。
+> - **使用後はコンテナごと削除**する（`podman rm -f <コンテナ名>`、または `lab/run-lab.sh --clean`）。コンテナを再作成する操作（`run-lab.sh` の再実行を含む）でも認証情報は消えます（消えた場合は e2e は自動スキップ）。
+> - エージェント側でトークンが更新されると、**ホスト側で再ログインが必要になる可能性**があります。共用アカウントでは行わないでください。
 
 ---
 

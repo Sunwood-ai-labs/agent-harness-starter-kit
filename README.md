@@ -89,7 +89,9 @@ The hook only sees command text. It cannot catch a deletion inside a Python scri
 
 ## Lab results
 
-Accident scenarios are reproduced inside locked-down Podman containers (`lab/`) — deletion attempts with and without the hook, data exfiltration, guard tampering, guard breakage, runaway processes, and T3 Code serving. **26/26 checks passed** (20/20 accident tests plus network, runaway, config-loading, a real OpenCode agent e2e on the free hosted model, and `t3 serve`). Details and raw logs: [reports/lab-results.md](reports/lab-results.md).
+Accident scenarios are reproduced inside locked-down Podman containers (`lab/`) — deletion attempts with and without the hook, data exfiltration, guard tampering, guard breakage, runaway processes, and T3 Code serving. **20/20 accident tests, 6/6 host-side checks, and a real Claude Code agent e2e (6/6, `claude -p`: dangerous deletions stopped by hook ask/deny, scratch deletion allowed, sandbox active) plus a real OpenCode agent e2e (free hosted model) all passed.** Codex e2e remained unverified (account usage limit; re-run with `bash lab/e2e-codex.sh` after it resets — hook loading was observed up to the SessionStart hook). Enable the real-CLI e2e with `LAB_E2E_CLAUDE=1` / `LAB_E2E_CODEX=1` / `LAB_E2E_OPENCODE=1`; they auto-skip when no login credentials exist inside the container. Details and raw logs: [reports/lab-results.md](reports/lab-results.md).
+
+> **Putting login credentials into the lab container** — only ever into that disposable, verification-only container (`harness-kit-*`); never copy, display, or log the files (the e2e scripts check for their *existence* only); delete the container afterwards (`podman rm -f <name>` or `lab/run-lab.sh --clean`) — note that re-running `run-lab.sh` also recreates the container and thus removes them; and be aware that token refresh by the agent may invalidate the host-side login (do not use shared accounts).
 
 Run the unit tests anywhere: `python -m unittest discover -s tests -v` (29 tests, Windows & Linux CI).
 

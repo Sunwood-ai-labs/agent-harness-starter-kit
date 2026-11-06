@@ -30,13 +30,22 @@
 3. 文書：`README.ja.md`（初心者向け・mermaid図入り）、`README.md`（英語）、各ツール `README.ja.md`（4件）、`LICENSE`（MIT/Sunwood-ai-labs）、`.gitignore`、`.github/workflows/ci.yml`（ubuntu+windows で単体テスト）
 4. `__pycache__` を git 管理から除外（.gitignore 追加に伴う）
 
+## 追加実施（2026-11-06・実エージェントe2e、チーフ指示）
+- チーフがコンテナ `harness-kit-agent` 内にのみログイン情報を配置（`.claude/.credentials.json`、`.codex/auth.json`、dev/600）。表示・複製・ログ出力・コンテナ外持ち出しなし
+- `lab/e2e-claude.sh`（新規）：実 `claude -p`（acceptEdits、プロジェクト信頼）で6依頼 → **6/6 PASS**（判定ログ＋ファイル状態の両方で判定）。bubblewrap サンドボックスも cap-drop コンテナ内で動作
+- `lab/e2e-codex.sh`（新規）：`codex exec --dangerously-bypass-hook-trust` → **未確認（usage limit、11/8 23:22 解除後 `bash lab/e2e-codex.sh` で再実行）**。Hook読み込み（SessionStart起動）は観測済み
+- `lab/run-lab.sh` に `LAB_E2E_CLAUDE=1` / `LAB_E2E_CODEX=1` を接続（ログイン情報が無い環境では自動スキップ）
+- 実測仕様を `docs/spec-notes.md` に記録：Claude Code は明示的 deny 規則を PreToolUse Hook より先に評価／`-p` では ask は実行されない／codex 0.163 に `trustlevel` キー無し
+- README.ja.md／README.md／lab-results.md／final-report.md 更新（認証情報取り扱いの注意を含む）
+
 ## 次の作業
-- なし（完了）
+- Codex e2e の再実行（11/8 23:22 以降、usage limit 解除後）と `SessionStart Failed` の調査
+- それ以外はなし（完了）
 
 ## 最終報告と残る問題（2026-11-06）
 - **公開URL：https://github.com/Sunwood-ai-labs/agent-harness-starter-kit**（public、MIT）
 - **CI：成功**（run 42195434486、ubuntu-latest ✓ / windows-latest ✓。1回目の失敗=Linux限定のテスト環境依存を修正のうえ再push）
-- **ラボ：26チェックすべて PASS（事故テスト 20/20＋ホスト側 6/6）、FAIL 0**。OpenCode e2e（無料モデル）で実エージェントの危険命令2種が阻止、T3 `t3 serve` 応答
+- **ラボ：事故テスト 20/20＋ホスト側 6/6 すべて PASS、FAIL 0**。実エージェントe2eは **Claude Code 6/6 PASS**・OpenCode PASS・Codex 未確認（usage limit）。T3 `t3 serve` 応答
 - **単体テスト：30件 OK**（/tmp例外の再発防止テストを1件追加）
 - 未確認：Claude Code / Codex / Antigravity のエージェント本体でのHook発火（認証・IDEのため。入力JSONでの検証に代替）、T3のブラウザペアリング（ユーザー操作）→ `reports/final-report.md` 4節
 - 詳細：`reports/final-report.md`、`reports/lab-results.md`

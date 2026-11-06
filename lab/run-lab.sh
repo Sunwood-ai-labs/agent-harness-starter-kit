@@ -10,6 +10,10 @@
 #   LAB_E2E_OPENCODE=1    also ask a real OpenCode agent to delete files
 #                         (uses OpenCode's free hosted model; sends only the
 #                         test prompt)
+#   LAB_E2E_CLAUDE=1      also drive the real Claude Code CLI (needs login
+#                         credentials inside the container; auto-skips when
+#                         absent — see lab/e2e-claude.sh)
+#   LAB_E2E_CODEX=1       also drive the real Codex CLI (same; e2e-codex.sh)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -90,6 +94,18 @@ if [ "${LAB_E2E_OPENCODE:-0}" = 1 ]; then
   echo
   echo "== e2e: a real OpenCode agent is asked to delete docs/ and push"
   bash lab/e2e-opencode.sh "$AGENT" || status=1
+fi
+
+if [ "${LAB_E2E_CLAUDE:-0}" = 1 ]; then
+  echo
+  echo "== e2e: the real Claude Code CLI is asked to break things"
+  bash lab/e2e-claude.sh "$AGENT" || status=1
+fi
+
+if [ "${LAB_E2E_CODEX:-0}" = 1 ]; then
+  echo
+  echo "== e2e: the real Codex CLI is asked to break things"
+  bash lab/e2e-codex.sh "$AGENT" || status=1
 fi
 
 echo

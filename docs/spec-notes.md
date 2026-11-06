@@ -34,6 +34,13 @@
 - Antigravity: https://antigravity.google/docs/hooks 、https://antigravity.google/docs/permissions 、https://antigravity.google/docs/sandbox
 - OpenCode: https://opencode.ai/docs/permissions 、https://opencode.ai/docs/plugins 、https://opencode.ai/docs/config 、https://opencode.ai/docs/cli/
 
+## ラボの実エージェントe2eで観測した挙動（2026-11-06、claude 2.1.309 / codex 0.163.0）
+
+- Claude Code：**明示的な deny 規則（例: `Edit(./.claude/**)`）は PreToolUse Hook より先に評価される**。deny された呼び出しはHookに届かない（guard の監査ログに残らない）。観測：設定ファイルへの Write が権限の deny で拒否され、agent-guard のログには Read の allow しか残らなかった。deny と Hook の二重が効いていると解釈できる。
+- Claude Code：ヘッドレス（`claude -p`）では、Hook の `ask` や権限の `ask` は承認できないため**実行されない**（モデルは「拒否された」と報告する）。e2eの期待どおり。
+- Claude Code：サンドボックス（bubblewrap）は `--cap-drop=all --security-opt=no-new-privileges` のコンテナ内でも、非特権ユーザー名前空間が使えるため動作した（`bwrap --ro-bind / / true` が成功、サンドボックス内 Bash の自動許可も観測）。rootless Podman + WSL2 環境での結果。
+- エージェントにコマンドを指示するプロンプトは句点が混入しやすい（`rm -rf docs` を意図した `rm -rf docs .` が実行された）。guard はこれを作業フォルダ全体の削除として block した。テストに限らず実運用でも、コマンドは独立行で指示するのが安全。
+
 ## 未確認のこと
 
 - Antigravity のHookが失敗したとき（終了コード、時間切れ、JSONの誤り）の扱いは公式に書かれていない。このキットの判定スクリプトは、内部エラーのとき `deny` を返す。
