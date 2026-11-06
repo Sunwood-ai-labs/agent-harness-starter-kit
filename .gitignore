@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# agent-guard runtime artifacts (installed copies of this kit live in projects)
+.agent-guard/logs/
+.agent-trash/
+
+# lab / reports scratch
+*.log.tmp

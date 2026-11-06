@@ -10,7 +10,7 @@ ARG T3_VERSION=0.1.2
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
-        ca-certificates curl git python3 bubblewrap socat procps tini \
+        ca-certificates curl git python3 bubblewrap socat procps tini libatomic1 \
     && rm -rf /var/lib/apt/lists/* \
     && groupmod --new-name dev node \
     && usermod --login dev --home /home/dev --move-home node \

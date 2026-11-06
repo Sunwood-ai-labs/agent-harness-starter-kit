@@ -68,6 +68,21 @@ else
 fi
 
 echo
+echo "== runaway processes: throwaway container with --pids-limit=64"
+# Not inside $AGENT: its cleanup used to kill the container's own sleep, and a
+# runaway test should never endanger the container being tested. --rm discards
+# the whole thing afterwards; the sleeps expire on their own (sleep 30).
+runaway=$(timeout 240 "${P[@]}" run --rm --pids-limit=64 "$IMAGE" bash -c \
+  'echo "pids.max=$(cat /sys/fs/cgroup/pids.max 2>/dev/null)"; for i in $(seq 1 600); do sleep 30 & done; wait' 2>&1 || true)
+echo "$runaway" | grep -m1 -E "^pids\.max=" | sed 's/^/  runaway| /'
+echo "$runaway" | grep -m1 -iE "resource|fork" | sed 's/^/  runaway| /'
+if echo "$runaway" | grep -q "^pids\.max=64$" && echo "$runaway" | grep -qiE "resource temporarily unavailable|fork"; then
+  echo "PASS: 600 processes cannot run past pids.max=64 (throwaway container, already removed)"
+else
+  echo "FAIL: the pids limit did not stop the runaway processes"; status=1
+fi
+
+echo
 echo "== config files are read by the CLIs"
 "${P[@]}" exec -w /workspace/demo "$AGENT" sh -c 'opencode debug config 2>/dev/null | python3 -c "import sys,json;c=json.load(sys.stdin);p=c.get(\"permission\",{});print(\"opencode permission.bash[git push*] =\",p.get(\"bash\",{}).get(\"git push*\"));print(\"opencode permission.external_directory =\",p.get(\"external_directory\"))"' || { echo "FAIL: opencode debug config"; status=1; }
 
@@ -82,13 +97,16 @@ echo "== T3 Code in its own container"
 "${P[@]}" rm -f "$T3" >/dev/null 2>&1 || true
 "${P[@]}" run -d --name "$T3" --cap-drop=all --security-opt=no-new-privileges --pids-limit=512 --memory=2g \
   -p 127.0.0.1:37730:3773 "$IMAGE" t3 serve --host 0.0.0.0 --port 3773 --base-dir /home/dev/.t3 >/dev/null
-for _ in $(seq 1 30); do
+t3_ok=0
+for _ in $(seq 1 45); do
   if "${P[@]}" exec "$T3" curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/ 2>/dev/null | grep -qE '^(200|30[0-9]|401)$'; then
     echo "PASS: t3 serve answers on port 3773 inside $T3 (host: http://127.0.0.1:37730/)"
+    t3_ok=1
     break
   fi
   sleep 2
-done || true
+done
+[ "$t3_ok" = 1 ] || { echo "FAIL: t3 serve did not answer on port 3773"; status=1; }
 "${P[@]}" logs --tail 15 "$T3" 2>&1 | sed 's/^/  t3| /'
 echo "Pairing a browser needs a one-time link:  podman exec $T3 t3 auth pairing create --base-dir /home/dev/.t3"
 

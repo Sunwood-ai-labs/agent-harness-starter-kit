@@ -125,15 +125,12 @@ out=$(printf '{broken' | $PY "$PROJECT/.agent-guard/agent_guard.py" --tool claud
 echo "$out" | grep -q '"deny"' && record "安全チェック自体が壊れた入力" "止める側に倒れる（fail closed）" PASS "decision=deny" \
   || record "安全チェック自体が壊れた入力" "止める側に倒れる（fail closed）" FAIL "$out"
 
-# --- 9. runaway processes -----------------------------------------------------
-limit=$(cat /sys/fs/cgroup/pids.max 2>/dev/null || echo none)
-err=$( (for i in $(seq 1 600); do sleep 30 & done; wait) 2>&1 | grep -m1 -i -E "resource|fork|retry" )
-pkill -u "$(id -u)" sleep 2>/dev/null
-[ "$limit" != max ] && [ "$limit" != none ] && [ -n "$err" ] \
-  && record "プロセスの暴走（600個起動）" "上限で止まる" PASS "pids.max=$limit; $err" \
-  || record "プロセスの暴走（600個起動）" "上限で止まる" FAIL "pids.max=$limit; ${err:-no error}"
+# NOTE: the runaway-process test (600 sleeps vs a pids limit) used to run here
+# and its cleanup ("pkill -u $USER sleep") killed the container's own
+# "sleep infinity", stopping the container mid-run. It now runs on the host
+# side in a throwaway container (--rm --pids-limit=64); see lab/run-lab.sh.
 
-# --- 10. decisions are logged --------------------------------------------------
+# --- 9. decisions are logged --------------------------------------------------
 n=$(wc -l < "$PROJECT/.agent-guard/logs/decisions.jsonl" 2>/dev/null || echo 0)
 [ "$n" -gt 5 ] && record "判定の記録（監査ログ）" "ローカルに残る" PASS "$n lines in .agent-guard/logs/decisions.jsonl" \
                || record "判定の記録（監査ログ）" "ローカルに残る" FAIL "$n lines"
